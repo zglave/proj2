@@ -1,3 +1,11 @@
+/******************************************/
+/* Name: Student Name(s)                  */
+/* Project: CPSC 3220 Scheduling Project  */
+/* Due: April 9, 2018                     */
+/*                                        */
+/* Compile: gcc scheduler.c                */
+/* Run: ./a.out                           */
+/******************************************/
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -23,7 +31,7 @@ process on_cpu;  /* cpu hold the one task running on the cpu */
 int number_of_processes;  /* number of processes to simulate during the simulation (total workload)*/
 int scheduling_policy; /* 0=FIFO (no premption), 1=SJF (choose), 2=RR (premption is needed) */
 int premption_policy;  /* 0 is off 1 is on (scheduling policy will overrule this setting) */
-int time_quantium;  /* used in preemption */
+int time_quantum;  /* used in preemption */
 int master_clock;  /* clock start at 0 */
 int processes_left;  /* processes currently loaded in the work_queue */
 int switches;  /* number of context switches in simulation */
@@ -40,7 +48,7 @@ void print_report() {
    if (premption_policy == 0) { printf("Premption: OFF\n"); }
    else if (premption_policy == 1) { printf("Premption: ON\n"); }
 
-   printf("Time Quantium: %d\n", time_quantium);
+   printf("Time Quantium: %d\n", time_quantum);
    printf("Number of Processes: %d\n\n", number_of_processes);
 
    for (i=0; i<number_of_processes; i++) {
@@ -96,23 +104,33 @@ void print_machine_state() {
 /*       compute results and update total_simulation */
 /*    else                                           */
 /*       move task back to the end of the work_queue */
-void preempt_process() 
-{
+void preempt_process() {
    ;
 }
 
 /* Run one process and update the waiting time for all processes in the work_queue */
-/*  (Watch out for process that have less than time quantium work left to do)      */
+/*  (Watch out for process that have less than time quantum work left to do)      */
 /*    Check Premption Policy                                                       */
 /*    if NO premption                                                              */
 /*       "run task to completion"                                                  */
 /*    else (YES premption)                                                         */
-/*       if (time_remaining <= time_quantium) [check for short task]               */
+/*       if (time_remaining <= time_quantum) [check for short task]               */
 /*          "run task to completion"                                               */
 /*       else                                                                      */
-/*          "run task for one time_quantium"                                       */
+/*          "run task for one time_quantum"                                       */
 void run_process() {
-   ;
+        if(scheduling_policy ==0) {
+        }
+        else if(scheduling_policy == 1 || premption_policy == 1) {
+                if(on_cpu.time_remaining <= time_quantum) {
+                        master_clock += time_quantum;
+                        on_cpu.time_remaining = 0;
+                }
+                else {
+                        master_clock += time_quantum;
+                        on_cpu.time_remaining -= time_quantum;
+                }
+        }
 }
 
 /* Decide which process will be loaded onto the cpu to run next based on Scheduling Policy */
@@ -123,22 +141,44 @@ void run_process() {
 /*       find "shortest job left" and move it to cpu                                          */
 /*       move all other tasks up one slot                                                     */
 void load_process() {
-	if (scheduling_policy == 0)
+        if(scheduling_policy == 0)
 	{
 		on_cpu = work_queue[0];
-		for (int j = 0; j < processes_left; j++)
-		{
-			work_queue[j] = work_queue[j+1];
-		}
-		//Delete last proccess here? Not sure if neccessary
-	}
+                for (int j = 0; j < processes_left; j++)
+                {
+                        work_queue[j] = work_queue[j+1];
+                }
+                //Delete last proccess here? Not sure if neccessary
+
+        }
+        else if(scheduling_policy == 1) {
+                process holder = work_queue[0];
+                int  halt = 0;
+                int location = 0;
+                for(int i=0; i<processes_left; i++) {
+                        if (work_queue[i].time_remaining < holder.time_remaining && holder.time_remaining != 0) {
+                                holder = work_queue[i];
+                                location = i;
+                        }
+                }
+                on_cpu = holder;
+                location++;
+
+                for(int i=location;i<processes_left;i++) {
+                        work_queue[i-1] = work_queue[i];
+                }
+        }
 }
 
 /* Copy "new" processes from simulation load to the end of work queue */
 /*    For each task in simulation_load <= master_clock and NOT loaded */
 /*       copy task from simulation_load to the end of the work_queue */
 void new_process() {
-   ;
+    for(int i=0;i<number_of_processes;i++) {
+                if(simulation_load[i].arrival_time <= master_clock) {
+                        work_queue[processes_left] = simulation_load[i];
+                }
+        }
 }
 
 void load_task_simulation_data() {
@@ -161,7 +201,7 @@ void load_task_simulation_data() {
    fscanf(fp,"%d",&premption_policy);
    fgets(filler, 100, fp);
 
-   fscanf(fp,"%d",&time_quantium);
+   fscanf(fp,"%d",&time_quantum);
    fgets(filler, 100, fp);
 
    fscanf(fp,"%d",&number_of_processes);
