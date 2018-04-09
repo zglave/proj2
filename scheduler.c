@@ -96,7 +96,8 @@ void print_machine_state() {
 /*       compute results and update total_simulation */
 /*    else                                           */
 /*       move task back to the end of the work_queue */
-void preempt_process() {
+void preempt_process() 
+{
    ;
 }
 
@@ -122,7 +123,15 @@ void run_process() {
 /*       find "shortest job left" and move it to cpu                                          */
 /*       move all other tasks up one slot                                                     */
 void load_process() {
-   ;
+	if (scheduling_policy == 0)
+	{
+		on_cpu = work_queue[0];
+		for (int j = 0; j < processes_left; j++)
+		{
+			work_queue[j] = work_queue[j+1];
+		}
+		//Delete last proccess here? Not sure if neccessary
+	}
 }
 
 /* Copy "new" processes from simulation load to the end of work queue */
