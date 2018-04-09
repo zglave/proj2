@@ -1,0 +1,17 @@
+        else if(scheduling_policy == 1) {
+                process holder = work_queue[0];
+                boolean halt = false;
+                int location = 0;
+                for(int i=0;i<processes_left;i++) {
+                        if (work_queue[i].time_remaining < holder.time_remaining && holder.time_remaining != 0) {
+                                holder = work_queue[i];
+                                location = i;
+                        }
+                }
+                on_cpu = holder;
+                location++;
+
+                for(int i=location;i<processes_left;i++) {
+                        work_queue[i-1] = work_queue[i];
+                }
+        }
